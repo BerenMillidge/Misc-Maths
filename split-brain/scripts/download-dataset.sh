@@ -1,8 +1,13 @@
 #! /bin/bash
 
 #download a given dataset from the website. By default it's cifar10, we can change it though!
+#we've now added interactivity. this should make it more general, perhaps.
 
-NAME=cifar10
+echo "Please enter the name of the dataset to download"
+read name
+echo
+NAME=$name
+echo "Downloading ${NAME}..."
 DATA_DIR=$HOME/project/splitbrain/datasets/${NAME}
 mkdir ${DATA_DIR}
 PYSCRIPT=$HOME/project/models/slim
