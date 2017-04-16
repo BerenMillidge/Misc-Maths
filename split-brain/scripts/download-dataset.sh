@@ -23,3 +23,4 @@ echo "They have been downloaded to ${DATA_DIR}"
 echo
 
 #I could modify this to take a command line argument with a default, but really  Ican't be bothered
+#Seriously. this is just insane. the whole slim models thing doens't seem to work as it uses parts of tensorflow which seem to have been deprecated, and trying to debug this will probably be a nightmare. Ugh. I should probably just try to code it from scratch, but I think I'll try to go through the slim tutorial jupyter notebook first to see if anything good can be had of this, because if it can then it would speed things up immensely!
