@@ -2,7 +2,7 @@
 
 #This trains a model from scratch. It'll probably be too slow to run, but we have it here anyway
 
-CHECKPOINT_DIR=/tmp/checkpoints
+CHECKPOINT_DIR=/afs/inf.ed.ac.uk/user/s16/s1686853/models
 DATASET_DIR=/tmp/imagenet
 TRAIN_DIR=/tmp/train_logs
 python train_image_classifier.py \
