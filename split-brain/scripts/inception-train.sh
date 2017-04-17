@@ -8,6 +8,8 @@ DATASET_DIR=$HOME/project/splitbrain/datasets/${NAME}
 TRAIN_DIR=$HOME/project/splitbrain/logs/${NAME}
 mkdir ${TRAIN_DIR}
 PYSCRIPT=$HOME/project/models/slim
+echo "Beginning training"
+echo
 
 
 python ${PYSCRIPT}/train_image_classifier.py \
