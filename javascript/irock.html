@@ -1,0 +1,49 @@
+<html>
+<head>
+<title>iRock - The Virtual Pet Rock</title>
+</head>
+<script type="text/javascript" src="cookie.js"></script>
+<script type="text/javascript">
+function touchRock() {
+if userName()
+	alert("I like the attention, " + userName + " Perhaps I shall kill you, last.");
+else {
+	var userName = prompt("What is your name, sucker?", "Enter your name here, or die...");
+	if (userName) {
+		alert("It is good to meet you, " + userName + ". As that way I get to see you die.");
+		if (navigator.cookieEnabled)
+			writeCookie("irock_username", userName, 5*365);
+		else
+			alert("Sorry, I appear to have come down with a severe case of cookie-deprivation-induced amnesia. I'm afraid I won't remember this after you refresh your browser")
+	}
+}
+document.getElementById("rockImg").src = "irock/rock_happy.png";
+
+}
+function sadRock() {
+alert("You bastard! the rock is sad! You have ignored it")
+document.getElementById("rockImg").src = "irock/rock_sad.png";
+}
+setTimeout(sadRock();, 5000);
+
+function resizeRock() {
+doument.getElementById("rockImg").style.height = (document.body.clie-ntheight -100) *0.9
+}
+
+function greetUser() {
+if (navigator.cookieEnabled) {
+	userName = readCookie("irock_username");
+}
+if (username)
+	alert("Hello" + userName + ", I missed murdeing you horribly.");
+}
+else
+	alert("Hello, I am your pet rock... Face me, AND DIE!")
+
+</script>
+<body onload=greetUser();resizeRock();" onresize="resizeRock();" >
+<div style="margin-top:100px;text-align:center">
+<img id="rockImg" src="irock/rock.png" alt="iRock" style="cursor:pointer" onclick="touchRock();" />
+</div>
+</body>
+</html>
