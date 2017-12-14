@@ -7,17 +7,19 @@
 
 # first our dual number type
 
-type Dual{T<:Real} <: Number
+import Base: *
+
+type Dual{T} <: Real
 	r::T # the real part
 	d::T # the derivative part
 
-	function Dual(r::T, d::T)
-		return new(r,d)
-	end
+	#function Dual(r::T, d::T)
+	#	return new(r,d)
+	#end
 	
-	function Dual(r::T)
-		return new(r,0)	#this sets the default derivative as zero, which seems reasonable atm
-	end
+	#function Dual(r::T)
+	#	return new(r,0)	#this sets the default derivative as zero, which seems reasonable atm
+	#end
 end
 
 #some simple helper functoins
@@ -28,7 +30,6 @@ end
 function getDerivative(num::Dual)
 	return num.d
 end
-
 
 
 # okay, now we're going to implement finite differences so I can check my answers
@@ -139,8 +140,8 @@ function f(a,b)
 	return a + b
 end
 
-a = Dual(5)
-b = Dual(6)
+a = Dual(4,1)
+b = Dual(6,2)
 
 f(a,b)
 	
