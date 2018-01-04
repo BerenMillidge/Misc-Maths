@@ -50,11 +50,59 @@ run_function(fn, args){
 
 function print_results(res){
 
+
+	const colour_key = {
+			0: '\x1b[2m',
+			1: '\x1b[35m',
+			2: '\x1b[31m'
+		}
+
+	var total_pass =0;
+	var total_warning = 0;
+	var total_error = 0;
+	var total =0;
+
+	console.log('Testing function: ' + res.function_name + '\n');
+	console.log('Bombardment commencing...  \n');
+
+
 	// we do the iteration here
 	$.each(res, function(k,v){
+		const k_obj = print_obj(k)
+		const k_str = k_obj[string]
+		const k_warn = k_obj[warn]
+		const v_obj = print_obj(v)
+		const v_str = v_obj[string]
+		const v_warn = v_obj[warn]
+
+		const total_warn = increment_warn(k_warn, v_warn);
+
+		var str = total + ": " + k_str + " : " + v_str + '\n';
+
+		// and finally we print it
+		console.log(colour_key[total_warn], str);
+
+
+
+		// increment our totals
+		if (total_warn==0) {
+			total_pass +=1;
+		}
+		if (total_warn ==1) {
+			total_warning +=1;
+		}
+		if (total_warn ==2) {
+			total_error +=1;
+		}
+		total +=1
 		
-		
-	})
+	});
+	console.log('Function bombardment completed  \n')
+	console.log('Total passes: ' + total_pass + '\n');
+	console.log('Total warns: ' + total_warn + '\n');
+	console.log('Total Errors' + total_error + '\n');
+	console.log('\n');
+
 }
 
 function increment_warn(warn, val){
@@ -74,17 +122,32 @@ function print_obj(o) {
 	if (o instanceof Array) {
 		str = "["
 		for (var el in o) {
-			str += " " + print_obj(el)
+			obj = print_obj(el);
+			str += " ";
+			str += obj[string];
+			warn = increment_warn(warn, obj[warn]);
 		}
 		str += " ]";
 
 	}
 
+	if(o instanceof Error) {
+		if(o.hasOwnProperty('message')) {
+			str = "Error: " + o.message;
+		} else {
+			str = "Error: " + JSON.stringify(o);
+		}
+		warn = increment_warn(warn, 2);
+
+	}
+
 	if(o===null) {
 			str='null';
+			warn= increment_warn(warn, 1);
 		}
 		else if(o===undefined) {
 			str = 'undefined';
+			warn = increment_warn(warn, 1)
 		}
 		else if (!o.toString ||o.ToString()==='[object Object]') {
 			// this checks if it's an object basically
@@ -94,4 +157,11 @@ function print_obj(o) {
 		} else {
 			str = o.toString();
 		}
+
+
+		// this is our return object, so it's not too horrendously hopefulyl
+	return {
+		string: str,
+		warn: warn
+	}
 }
