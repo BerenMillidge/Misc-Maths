@@ -9,9 +9,58 @@
 // okay, our big functoin, I honestly do not even know how this won't work in js
 // like there are probably loads of useful javascript specific things to do, I don't know
 
+///STANDARD SIMPLE TEST FUNCTIONS
+
+const a = function(){
+	return null;
+}
+const b = function() {
+	true = false;
+	+ = -;
+	try: {
+		return 1/0
+	} catch(e) {
+		return e
+	}
+}
+const c = function() {
+	die();
+}
+
+const d = function(e) {
+	e.map(function(){
+		return 2+2;
+	})
+}
+
+// STANDARD TEST OBJECTS
+
+const o1 = {
+	a = null,
+	b = undefined,
+	c=4,
+	e = function(){
+		return null;
+	}
+}
+
+const o2e = {};
+
+// STANDARD TEST ARRAYS
+
+const arr1 = [1,2,3,4,5]
+const arr2 = ["a","b","c","d","e"]
+const arr3 = [1,2,3,undefined, 4,null,0,NaN]
+const arr4 = ["a", 4, undefined, "", "b","c",null]
+
 
 
 const standard_val = {
+
+	nums: [1,10,1000,100000000,0,-1,-10,-100000000, 0.4, 2.0, 10/3, 1/0, Infinity, NaN]
+	strings: ["hello", "test", "\n", "\SELECT * FROM * WHEN 1==1" "\n \1\32ba\h\\\l\ka", "", "   "]
+	vals:[null, undefined, Nothing, true, false]
+	fns: [a,b,c]
 
 	// this is just our huge javascript object which will be our standard value hers
 	// of numbers and stuff, I don't know
@@ -32,6 +81,8 @@ function bombard!(fn, num_args, user_input_args, standard_vals = standard_val, p
 		// I'm not suer how else to do it
 
 		// I'm sure we can figure out some clever looping logic thoughg!
+
+
 }
 
 run_function(fn, args){
