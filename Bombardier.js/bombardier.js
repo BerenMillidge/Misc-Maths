@@ -57,10 +57,12 @@ const arr4 = ["a", 4, undefined, "", "b","c",null]
 
 const standard_val = {
 
-	nums: [1,10,1000,100000000,0,-1,-10,-100000000, 0.4, 2.0, 10/3, 1/0, Infinity, NaN]
-	strings: ["hello", "test", "\n", "\SELECT * FROM * WHEN 1==1" "\n \1\32ba\h\\\l\ka", "", "   "]
-	vals:[null, undefined, Nothing, true, false]
-	fns: [a,b,c]
+	nums: [1,10,1000,100000000,0,-1,-10,-100000000, 0.4, 2.0, 10/3, 1/0, Infinity, NaN],
+	strings: ["hello", "test", "\n", "\SELECT * FROM * WHEN 1==1" "\n \1\32ba\h\\\l\ka", "", "   "],
+	vals:[null, undefined, Nothing, true, false],
+	fns: [a,b,c,d],
+	objs: [o1,o2],
+	arrs: [arr1, arr2, arr3, arr4]
 
 	// this is just our huge javascript object which will be our standard value hers
 	// of numbers and stuff, I don't know
