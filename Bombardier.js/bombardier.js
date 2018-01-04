@@ -68,7 +68,7 @@ const standard_val = {
 	// of numbers and stuff, I don't know
 }
 
-function bombard!(fn, num_args, user_input_args, standard_vals = standard_val, print_results = true) {
+function bombard!(fn, num_args, user_input_args, N = 1000, standard_vals = standard_val, print_results = true) {
 
 
 		// how do we do the combinatorial exlposion here-  this will take an awfully long time tbh
@@ -84,7 +84,58 @@ function bombard!(fn, num_args, user_input_args, standard_vals = standard_val, p
 
 		// I'm sure we can figure out some clever looping logic thoughg!
 
+		// what we're going to do, at least for now, is have N random selectoin tested
+		// so it tests them against it, and have them be different combinations so we can see
+		// if it worked
 
+		var tried_combs = []
+		o = convert_obj_keys(standard_vals)
+		// now we do our random for loop
+		console.log('Beginning overall bombardment');
+		for (var i = 0; i<N; i++) {
+			var args = [];
+			for (var j = 0; j<num_args; j++) {
+				args.push(generate_arg(o));
+			}
+			res = run_fun(fn, args);
+			tried_combs.push(args);
+
+			if (print) {
+				print_results(res);
+			}
+		}
+
+		console.log('Bombardment over');
+		console.log(str(N) + ' combinations tried');
+
+}
+
+// okay, this still all needs testing, but it should have a fairly basic skeleton sorted out
+// obviously will need a lot of development work still, but that's just the way of things.
+
+function getRandom(max, min=0) {
+	return Math.floor(Math.random()*max) + min;
+}
+
+function generate_arg(o) {
+	const len = Object.keys(o).length;
+	var r1 = getRandom(len);
+	var arr = o[r1];
+	var r2 = getRandom(arr.length);
+	var val = arr[r2];
+	return val;
+}
+
+function convert_obj_keys(o) {
+	var converted = {}
+	var i = 0
+	for (var key in o) {
+		if(o.hasOwnProperty(key) {
+			converted[i] = o[key];
+			i +=1;
+		})
+	}
+	return converted;
 }
 
 run_function(fn, args){
