@@ -17,8 +17,81 @@ const standard_val = {
 	// of numbers and stuff, I don't know
 }
 
-function bombard!(fn, num_args, user_input_args, standard_vals = standard_val) {
+function bombard!(fn, num_args, user_input_args, standard_vals = standard_val, print_results = true) {
 
 
+		// how do we do the combinatorial exlposion here-  this will take an awfully long time tbh
+		// especially in an untyped language like javascript, if done naively
+		// let's do itthe naive way first though probably
+
+		// so the main thing here will be the operations loop, tbh
+		// to be honest we should probably have the run function thing itslf
+		// be a separate command, so we can see if it works
+
+		// yeah, the combinatorial exlposion is going to be seriously problematic here
+		// I'm not suer how else to do it
+
+		// I'm sure we can figure out some clever looping logic thoughg!
+}
+
+run_function(fn, args){
+
+	try: {
+		res = fn(...args);
+		return {args: res};
+	} 
+	catch(e): {
+		return {args: e}
+
+	}
+}
+
+
+
+function print_results(res){
+
+	// we do the iteration here
+	$.each(res, function(k,v){
 		
+		
+	})
+}
+
+function increment_warn(warn, val){
+	if (val>warn) {
+		return val;
+	}
+	return warn;
+}
+
+
+function print_obj(o) {
+	var str = '';
+	const arg_type = typeof(o);
+	var warn=0;
+
+
+	if (o instanceof Array) {
+		str = "["
+		for (var el in o) {
+			str += " " + print_obj(el)
+		}
+		str += " ]";
+
+	}
+
+	if(o===null) {
+			str='null';
+		}
+		else if(o===undefined) {
+			str = 'undefined';
+		}
+		else if (!o.toString ||o.ToString()==='[object Object]') {
+			// this checks if it's an object basically
+			str = JSON.stringify(o, null,'  ');
+		} else if (arg_type==='string') {
+			str = '"' + o.toString() + '"';
+		} else {
+			str = o.toString();
+		}
 }
