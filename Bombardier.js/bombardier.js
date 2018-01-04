@@ -68,7 +68,8 @@ const standard_val = {
 	// of numbers and stuff, I don't know
 }
 
-function bombard!(fn, num_args, user_input_args, N = 1000, standard_vals = standard_val, print_results = true) {
+function bombard!(fn, num_args, user_input_args, N = 1000, standard_vals = standard_val,
+ print_results = true, colourConfig = null, sanity_check = default_sanity_check) {
 
 
 		// how do we do the combinatorial exlposion here-  this will take an awfully long time tbh
@@ -88,7 +89,21 @@ function bombard!(fn, num_args, user_input_args, N = 1000, standard_vals = stand
 		// so it tests them against it, and have them be different combinations so we can see
 		// if it worked
 
+
+		// here we set up our colour config
+		const colours = colourConfig;
+		if (colours ==null) {
+			colours = {
+			0: '\x1b[2m',
+			1: '\x1b[35m',
+			2: '\x1b[31m'
+			}
+			
+		}
+
+
 		var tried_combs = []
+		results = {};
 		o = convert_obj_keys(standard_vals)
 		// now we do our random for loop
 		console.log('Beginning overall bombardment');
@@ -97,16 +112,28 @@ function bombard!(fn, num_args, user_input_args, N = 1000, standard_vals = stand
 			for (var j = 0; j<num_args; j++) {
 				args.push(generate_arg(o));
 			}
-			res = run_fun(fn, args);
-			tried_combs.push(args);
-
-			if (print) {
-				print_results(res);
+			var index = tried_combs.indexOf(args);
+			if (index >1) {
+				res = run_fun(fn, args);
+				tried_combs.push(args);
+				results[args] = res;
 			}
+			if (index <=-1) {
+				i -=1;
+				// we need to reset the loop counter so we don't use up a run
+			}
+
+
 		}
 
 		console.log('Bombardment over');
 		console.log(str(N) + ' combinations tried');
+
+		if(print) {
+			print_results(results, colours, sanity_check);
+		}
+
+		return results;
 
 }
 
@@ -142,24 +169,19 @@ run_function(fn, args){
 
 	try: {
 		res = fn(...args);
-		return {args: res};
+		return res
 	} 
 	catch(e): {
-		return {args: e}
+		console.log('Caught error in function: ' + fn.name);
+		return e;
 
 	}
 }
 
 
 
-function print_results(res){
+function print_results(res, colour_key, sanity_check){
 
-
-	const colour_key = {
-			0: '\x1b[2m',
-			1: '\x1b[35m',
-			2: '\x1b[31m'
-		}
 
 	var total_pass =0;
 	var total_warning = 0;
@@ -172,19 +194,19 @@ function print_results(res){
 
 	// we do the iteration here
 	$.each(res, function(k,v){
-		const k_obj = print_obj(k)
+		const k_obj = print_obj(k, warn=false)
 		const k_str = k_obj[string]
-		const k_warn = k_obj[warn]
+		//const k_warn = k_obj[warn]
 		const v_obj = print_obj(v)
 		const v_str = v_obj[string]
 		const v_warn = v_obj[warn]
 
-		const total_warn = increment_warn(k_warn, v_warn);
+		//const total_warn = increment_warn(k_warn, v_warn);
 
 		var str = total + ": " + k_str + " : " + v_str + '\n';
 
 		// and finally we print it
-		console.log(colour_key[total_warn], str);
+		console.log(colour_key[v_warn], str);
 
 
 
@@ -216,11 +238,37 @@ function increment_warn(warn, val){
 	return warn;
 }
 
+function default_sanity_check(o) {
 
-function print_obj(o) {
-	var str = '';
-	const arg_type = typeof(o);
-	var warn=0;
+	// the point of this is to define the standard warning messages
+	// you can (and should!) perhaps define your own functions if you like
+	// instead of this one
+	// and pass in your own coloru config
+
+	const ERROR = 2;
+	const WARNING = 1;
+	const SANE = 0;
+
+	if (o instanceof Error) {
+		return ERROR;
+	}
+	if (o == null || o == undefined) {
+		return WARNING;
+	}
+	if (isNaN(o)) {
+		return WARNING;
+	}
+	if (!isFinite()) {
+		return WARNING;
+	}
+	return SANE;
+
+}
+
+
+function print_obj(o, sanity_check, warn=true) {
+	var str = 'UNKNOWN';
+	var warn_val=0;
 
 
 	if (o instanceof Array) {
@@ -229,9 +277,8 @@ function print_obj(o) {
 			obj = print_obj(el);
 			str += " ";
 			str += obj[string];
-			warn = increment_warn(warn, obj[warn]);
 		}
-		str += " ]";
+		str += " ]"; 
 
 	}
 
@@ -241,31 +288,30 @@ function print_obj(o) {
 		} else {
 			str = "Error: " + JSON.stringify(o);
 		}
-		warn = increment_warn(warn, 2);
 
 	}
 
 	if(o===null) {
 			str='null';
-			warn= increment_warn(warn, 1);
-		}
-		else if(o===undefined) {
-			str = 'undefined';
-			warn = increment_warn(warn, 1)
-		}
-		else if (!o.toString ||o.ToString()==='[object Object]') {
-			// this checks if it's an object basically
-			str = JSON.stringify(o, null,'  ');
-		} else if (arg_type==='string') {
-			str = '"' + o.toString() + '"';
-		} else {
-			str = o.toString();
-		}
+	}
 
+	if ( o === undefined) {
+		str = 'undefined';
+	}
 
+	if( !o.toString || o.toString() = '[object Object]'){
+		str = JSON.stringify(o, null, '  ');
+	}
+
+	if (typeof(o) ==='string' {
+		str = o;
+	}
+	if (warn) {
+		warn_val = sanity_check(o);
+	}
 		// this is our return object, so it's not too horrendously hopefulyl
 	return {
 		string: str,
-		warn: warn
+		warn: warn_val
 	}
 }
