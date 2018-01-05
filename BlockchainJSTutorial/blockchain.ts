@@ -20,19 +20,26 @@
 
 import * as CryptoJS from 'crypto-js';
 import {broadcastLatest} from './p2p';
+import {hexTobinary} from './util';
+
 class Block {
 	public index: number;
 	public hash: string;
 	public previousHash: string;
 	public timestamp: number;
 	public data: string;
+	public difficulty: number;
+	public nonce: number;
 
-	constructor(index: number, hash: string, previousHash: string, timestamp: number, data:string) {
+	constructor(index: number, hash: string, previousHash: string,
+	 timestamp: number, data:string, difficulty: number, nonce: number) {
 		this.index = index;
 		this.previousHash = previousHash;
 		this.timestamp = timestamp;
 		this.data = data;
 		this.hash = hash;
+		this.difficulty = difficulty;
+		this.nonce = nonce;
 	}
 
 	// we have a functoin which calculates the has for us
@@ -40,13 +47,13 @@ class Block {
 }
 
 // a function to calcualte the hash of a block
-const calculateHash = function(index: number, previousHash: string, timestamp: number, data: string): string {
-		CryptoJS.SHA256(index + previousHash + timestamp + data).toString();
+const calculateHash = function(index: number, previousHash: string, timestamp: number, data: string, difficulty: number, nonce: number): string {
+		CryptoJS.SHA256(index + previousHash + timestamp + data + difficulty + nonce).toString();
 	}
 
 // this is our first ever block, programmatically created!
 const genesisBlock: Block = new Block(
-	0,'816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7',null, 1465154705, "my genesis block!!" );
+	0,'816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7',null, 1465154705, "my genesis block!!",0,0);
 
 
 // our generate next block function
@@ -150,7 +157,121 @@ const addBlockToChain = function(newBlock: Block): boolean {
 	return false;
 }
 
-export {Block, getBlockchain, getLatestBlock, generateNextBlock, isValidGenesis, isValidBlockStructure, replaceChain, addBlockToChain };
+
+
+// now we add the proof of work, the none to the thing
+
+// basically our very simple proof of work task is to giuess at hashes randomly
+// and find one with the requisite number of zeros - but it must be a valid hash
+// I don't understand what's to stop us randoly submitting a hash like object directly
+// is there a way to stop that?
+// ah I get it, that's what the nonce is for. So basicaly we need to loop through nonces
+// to find a hash, and then anyone given the block has the nonce and can then recreate the hash to check it
+// but what's to stop us simply reusing nonces. there must be a rule somewhere saying it's not allowed
+// or perhaps we need to have a nonce greater than the previous nonce, thus guaranteeing an upward climb?
+
+
+const hashMatchesDifficulty = function(hash: string, difficulty:number): boolean {
+	const hashInBinary:string = hexToBinary(hash);
+	var str: string = "";
+	for (var i = 0; i<difficulty; i++) {
+		str +="0";
+	}
+	const requiredPrefix: string = str;
+	return hashInBinary.startsWith(requiredPrefix);
+
+}
+
+// in any case, our work function on the nonces is as follows
+const findBlock = function(index: number, previousHash: string, timestamp: number, data: string,
+					difficulty: number): Block {
+	var nonce =0;
+	while(true) {
+		const hash: string = calculateHash(index, previousHash, timestamp,data, difficulty, nonce);
+		if(hashMatchesDifficulty(hash, difficulty)) {
+			return new Block(index, hash, previousHash, timestamp, data,difficulty,nonce);
+		}
+		nonce ++;
+	}
+}
+
+// now we can find a block we need some way for everyone to coordinate on the dfificulty
+// so this isvery hard
+
+// we need soem rules. let's define this as follow - we need some generally agreed constant
+
+const BLOCK_GENERATION_INTERVAL = 1000;
+const DIFFICULTY_ADJUSTMENT_INTERVAL = 50;
+
+// so basically we adjust the difficulty as follows: whenever we receive a block upadte
+// we calculate the dificuly and see what's up there and we either increase the difficulty by one if time taken is at least two times greater or smaller
+
+// so this is the code - and we calcualte it by block generatoin interval * block difficulty adjustment interval
+
+
+const getDifficulty = function(aBlockchain: Block[]): number {
+	const latestBlock: Block = aBlockchain[aBlockchain.length-1];
+	if (latestBlock.index % DIFFICULTY_ADJUSTMENT_INTERVAL ===0 && latestBlock.index!==0) {
+		return getAdjustedDifficulty(latestBlock, aBlockchain);
+	} else {
+		return latestBlock.difficulty;
+	}
+};
+
+const getAdjustedDifficulty = function(latestBlock: Block, aBlockchain: Block[]): number {
+	const prevAdjustmentBlock: Block = aBlockchain[blockchain.length - DIFFICULTY_ADJUSTMENT_INTERVAL];
+	const timeExpected: number = BLOCK_GENERATION_INTERVAL* DIFFICULTY_ADJUSTMENT_INTERVAL;
+	const timeTaken: number = latestBlock.timestamp - prevAdjustmentBlock.timestamp;
+	if(timeTaken < timeExpected/2) {
+		return prevAdjustmentBlock.difficulty +1;
+	} else if (timeTaken > timeExpected *2 ){
+		return prevAdjustmentBlock.difficulty -1;
+	} else {
+		return prevAdjustmentBlock.difficulty;
+	}
+};
+// the trouble is that we are using timestamps for these difficulty calculations 
+// and currently they are entirely arbitrary and hackable. we need to verifythem somehow
+// and we do this in a simple brute force way by not accepting a timestamp more than 1 min in the future
+// from the time we perceive - i.e. not more than 1 min in the future or past of the previous block
+
+// this implements that
+const isTimestampValid = function(newBlock: Block, previousBlock: Block): boolean {
+	return (previousBlock.timestamp - 60 < newBlock.timestamp) && (newBlock.timestamp -60 < getCurrentTimestamp());
+};
+
+const getCurrentTimestamp = function(): number {
+	return getLatestBlock().timestamp;
+}
+
+
+
+// we also want to adjust things so that it's thecumulative difficulty ofthe total blockchain submitted that matters
+// and not the simple length, since that is easier with loer difficulty
+
+// here's a function to do that
+
+const getCumulativeDifficulty = function(chain: Block[]): number {
+	if(chain.length<=0) {
+		console.log('invalid chain found length <=0');
+		return 0;
+	}
+	var total = 0;
+	for (var i = 0; i< chain.length; i++) {
+		const hash = chain[i].hash;
+		const diff = chain[i].difficulty;
+		if(hashMatchesDifficulty(hash, diff)) {
+			total += 2^diff;
+
+		} else {
+			console.log('invalid hash/difficulty found!');
+			return -1;
+		}
+	}
+	return total;
+}
+
+export {Block, getBlockChain, getLatestBlock, generateNextBlock, isValidGenesis, isValidBlockStructure, replaceChain, addBlockToChain };
 // we also needto communicate with other nodees here over a network
 
 // so we need to keep everyone in sync idealy (or at least all in a state where they can
@@ -162,3 +283,4 @@ export {Block, getBlockchain, getLatestBlock, generateNextBlock, isValidGenesis,
 // adds the block to its chain, or querys for the full chain
 
 // we communicate via websockets, and each node is a http server!
+
