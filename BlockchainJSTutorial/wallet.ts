@@ -89,7 +89,19 @@ const findTxOutsForAmount = function(amount: number, myUnspentTxOuts: UnspentTxO
 			return {includedUnspentTxOuts, leftoverAmount}
 		}
 	}
+	throw Error("You don't have enough coins to send transaction");
+	return null;
 
 }
 
+// so now we have the list of unspent outputs, we can create
+
 // we send the leftover amount back to our address
+const toUnsignedTxIn = function(unspentTxOut: UnspentTxOut) {
+	const txIn: TxIn = new TxIn();
+	txIn.txOutId = unspentTxOut.txOutId;
+	txIn.txOutIndex = unspentTxOut.txOutIndex;
+};
+
+const {includedUnspentTxOuts, leftOverAmount} = findTxOutsForAmount(amount, myUnspentTxOuts);
+const unsignedxIns: TxIn[] = includedUnspentTxOuts.map(toUnsignedTxIn);
