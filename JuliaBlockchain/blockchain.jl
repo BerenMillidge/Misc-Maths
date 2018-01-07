@@ -224,6 +224,24 @@ function validateBlockChain(blockchain:: AbstractBlockChain)
 end
 
 
+function addBlockToChain(blockchain:: AbstractBlockChain, block:: AbstractBlock)
+	#do we assume chain is valid here - we might as well
+	if !isValidBlock(block, getLatestBlock(blockchain))
+		Error('Tried to add invalid block')
+		return false
+	end
+	push!(blockchain.blocks, block)
+	# we may need to recalibrate the MAC or something of the chain
+	# if so do that here!
+	return true
+end
+
+
+function calculateBlockchainSignature(blockchain<: AbstractBlockChain)
+	#we're not sure how to implement that AbstractMessage
+	# so instead we're just filling this with a placeholder
+	return blockchain.Signature
+end
 
 # get the cumulative difficulty of a blockchain to see if it works!
 function getCumulativeDifficulty = function(blockchain:: AbstractBlockChain)
