@@ -15,6 +15,9 @@ enum MessageType {
 QUERY_LATEST = 0,
 QUERY_ALL = 1;,
 RESPONSE_BLOCKCHAIN = 2,
+// we also need to do transaction pool stuff to this enum
+QUERY_TRANSACTION_POOL = 3,
+RESPONSE_TRANSACTINO_POOL = 4
 
 };
 
@@ -95,6 +98,20 @@ const handleMessage= function(data:string) {
 				}
 				handleBlockchainResponse(receivedBlocks);
 				break;
+			case MessageType.RESPONSE_TRANSACTINO_POOL:
+				const receivedTransactions: Transaction[] = JSONToObject<Transaction[]>(message.data);
+				receivedTransactions.forEach(function(transaction: Transaction) {
+					try {
+						handleReceivedTransaction(transaction);
+						// if no error was thrown , transaction was addedto pol
+						// so we broadcast it
+						broadCastTransactionPool();
+					} catch(e) {
+						// unconfirmed transaction not valid
+						console.log('confirmed transaction not valid');
+					}
+				})
+				break;
 		}
 	}
 
@@ -144,6 +161,21 @@ const responseLatestMsg = function(): Message {
 		'type': MessageType.RESPONSE_BLOCKCHAIN,
 		'data': JSON.stringify([getLatestBlock()])
 	});
+}
+
+// our transaction pool events
+const responseTransactionPoolMsg = function(): Message {
+	return {
+		'type':MessageType.RESPONSE_TRANSACTINO_POOL,
+		'data': JSON.stringify(getTransactionPool())
+	};
+}
+
+const queryTransactionPoolMsg = function(): Message {
+	return {
+		'type': MessageType.QUERY_TRANSACTION_POOL,
+		'data': null
+	}
 }
 
 
