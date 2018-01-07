@@ -220,7 +220,7 @@ function validateBlockChainProperties(blockchain:: AbstractBlockChain)
 end
 
 function validateBlockChain(blockchain:: AbstractBlockChain)
-	return validateBlockChainProperties && validateBlockChainBlocks
+	return validateBlockChainProperties(blockchain) && validateBlockChainBlocks(blockchain.blocks)
 end
 
 
