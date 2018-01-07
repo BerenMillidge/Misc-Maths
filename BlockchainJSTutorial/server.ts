@@ -36,6 +36,20 @@ const initHttpServer = function(myPort: number) {
 	app.listen(myPort, function() {
 		console.log('listeneing http on port' + myPort);
 	});
+	// we also need to add a api point on the server to actually send a transaction via the wallet
+
+	app.post('/mineTransaction', function(req, res) {
+		const address = req.body.address;
+		const amount = req.body.amount;
+		const resp = generateNextBlockWithTransaction(address, amount);
+		res.send(resp);
+	});
+
+	// we also have a new endpoint which sends a transaction to our local trnsaction pool based on existing walled functoinality
+
+	app.post('/sendTransaction', function(req, res) {
+		// do stuff here
+	})
 };
 
 initHttpServer(port);

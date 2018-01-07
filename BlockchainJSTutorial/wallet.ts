@@ -103,5 +103,35 @@ const toUnsignedTxIn = function(unspentTxOut: UnspentTxOut) {
 	txIn.txOutIndex = unspentTxOut.txOutIndex;
 };
 
+// once we've got our wallet we need to create our txouts as well
+
+const createTxOuts = function(receiverAddress: string, myAddress: string, amount: number, leftOverAmount: number) {
+	const txOut1 = new TxOut(receiverAddress, amount);
+	if (leftOverAmount ===0) {
+		return [txOut1];
+	} else {
+		const leftOverTx = new TxOut(myAddress, leftOverAmount);
+		return [txOut1, leftOverTx];
+	}
+}
+
+// that's a pretty straightforward thing that just gets out txouts - i.e. the amount we send to hte person
+// and we send the remainder to our address. that's entirely normal and random and completely straightforward
+// so that'sgood, at least.
+
+// now all we have to do is create the transaction
+
+    const tx: Transaction = new Transaction();
+    tx.txIns = unsignedTxIns;
+    tx.txOuts = createTxOuts(receiverAddress, myAddress, amount, leftOverAmount);
+    tx.id = getTransactionId(tx);
+
+    tx.txIns = tx.txIns.map((txIn: TxIn, index: number) => {
+        txIn.signature = signTxIn(tx, index, privateKey, unspentTxOuts);
+        return txIn;
+    });
+
+
 const {includedUnspentTxOuts, leftOverAmount} = findTxOutsForAmount(amount, myUnspentTxOuts);
 const unsignedxIns: TxIn[] = includedUnspentTxOuts.map(toUnsignedTxIn);
+
