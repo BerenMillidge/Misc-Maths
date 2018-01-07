@@ -30,6 +30,8 @@ primitive type 512Signature <: Signature end
 
 #now for our more complex types
 
+const genesis_message = "This is how the world begins: not with a whimper, but with a bang!"
+
 type Blockchain <: AbstractBlockChain
 	blocks:: Array{AbstractBlock}
 	timeCreated:: Date
@@ -65,7 +67,7 @@ type GenesisBlock <: AbstractGenesisBlock
 	nonce:: Integer
 
 	function GenesisBlock()
-		const genesis_message = "This is how the world begins: not with a whimper, but with a bang!"
+		const genesis_message = getGenesisMessage()
 		index = 0
 		data = Message(0, genesis_message)
 		difficulty = 0
@@ -123,7 +125,9 @@ function calculate_MAC(id, data)
 end
 
 
-
+function getGenesisMessage()
+	return genesis_message
+end
 # okay, now we do operations on the block chain and functoins thereby
 
 function getLatestBlock(blockchain:: AbstractBlockChain)
@@ -159,6 +163,68 @@ function getNonce()
 end
 
 
+
+function isValidBlock(block:: AbstractBlock, prevBlock::AbstractBlock)
+	if prevBlock.index +1 != block.index
+		Error('New block index does not match')
+		return false
+	end
+	if block.previousHash != prevBlock.hash
+		Error('Block previous hash does not match')
+		return false
+	end
+	if calculateHash(block) != block.hash
+		Error('Block hash invalid')
+		return false
+	end
+	if !isValidTimestamp(block.timestamp, prevBlock.timestamp)
+		Error('Block timestamp is invalid')
+		return false
+	end
+	return true
+end
+
+function isValidGenesis(proposedGenesis:: AbstractGenesisBlock)
+	if proposedGenesis.index != 0
+		Error('Genesis does not start at 0')
+		return false
+	end
+	if proposedGenesis.hash != calculate_hash(getGenesisMessage())
+		Error('Genesis block hash invalid')
+		return false
+	end
+	if proposedGenesis.previousHash != Hash(0)
+		Error('Genesis block previous hash invalid')
+		return false
+	end
+	#we might need to validate timestamp, but not sure how
+	return true
+end
+
+function validateBlockChainBlocks(blocks:: Array{AbstractBlock})
+	len = lengh(blocks)
+	if !isValidGenesis(blocks[0])
+		return false
+	end
+	for i in 1:len
+		if !isValidBlock(blocks[i], blocks[i-1])
+			return false
+		end
+	end
+	return true
+end
+
+function validateBlockChainProperties(blockchain:: AbstractBlockChain)
+	#need to implement properly
+	return true
+end
+
+function validateBlockChain(blockchain:: AbstractBlockChain)
+	return validateBlockChainProperties && validateBlockChainBlocks
+end
+
+
+
 # get the cumulative difficulty of a blockchain to see if it works!
 function getCumulativeDifficulty = function(blockchain:: AbstractBlockChain)
 	blocks = blockchain.blocks
@@ -186,6 +252,7 @@ function getDifficulty(blockchain:: AbstractBlockChain, difficulty_adjustment_in
 	end
 	return latestBlock.difficulty
 end
+
 
 
 function getAdjustedDifficulty(latestBlock:: AbstractBlock, blockchain::AbstractBlockChain, difficulty_adjustment_interval, block_generation_interval)
