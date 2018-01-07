@@ -48,7 +48,35 @@ type Block <: AbstractBlock
 	difficulty:: Integer
 	nonce:: Integer
 
+
+	function Block(index, hash, previousHash, timestamp, data, difficulty, nonce)
+		return new(index, hash, previousHash, timestamp, data, difficulty,nonce)
+	end
+
 end
+
+type GenesisBlock <: AbstractGenesisBlock
+	index:: Integer
+	hash:: Hash
+	previousHash:: Hash
+	timestamp:: Date
+	data::Array{Message}
+	difficulty:: Integer
+	nonce:: Integer
+
+	function GenesisBlock()
+		const genesis_message = "This is how the world begins: not with a whimper, but with a bang!"
+		index = 0
+		data = Message(0, genesis_message)
+		difficulty = 0
+		nonce = 0
+		previousHash = Hash(0)
+		timestamp = 1 # pass
+		hash=  caluclate_hash(index, data[0].data, difficulty, nonce, previousHash, timestamp)
+		return new(index, hash, previousHash, timestamp, data, difficulty, nonce)
+	end
+end
+
 
 
 type Message <: AbstractMessage
@@ -80,3 +108,99 @@ type Message <: AbstractMessage
 
 end
 
+
+function calculate_hash(inputs) 
+	# so originally we're going to d something here
+	# but I don't know how
+	#either use a crypto implementation or roll our own
+	# so now we're just going to return
+	return inputs
+	end
+
+function calculate_MAC(id, data)
+	#no idea how to implement this either
+	return MAC()
+end
+
+
+
+# okay, now we do operations on the block chain and functoins thereby
+
+function getLatestBlock(blockchain:: AbstractBlockChain)
+	return blockchain.blocks[-1]
+end
+
+function getBlocks(blockchain:: AbstractBlockChain)
+	return blockchain.blocks
+end
+
+function generateNextBlock(blockchain:: AbstractBlockChain, blockData:: Array{Message})
+	prevBlock = getLatestBlock(blockchain)
+	nextIndex = prevBlock.index +1
+	timestamp = getDateTime()
+	nextHash = calculate_hash((nextIndex, prevBlock.hash,timestamp, blockData))
+	difficulty = getDifficulty()
+	nonce = getNonce()
+	newBlock = Block(index, hash, previousHash, timestamp, blockData, difficulty,nonce)
+	return newBlock
+end
+
+
+function getDateTime()
+	Error("not implemented yet")
+end
+
+function getDifficulty()
+	Error("not implemented yet")
+end
+
+function getNonce()
+	Error("not implemented yet")
+end
+
+
+# get the cumulative difficulty of a blockchain to see if it works!
+function getCumulativeDifficulty = function(blockchain:: AbstractBlockChain)
+	blocks = blockchain.blocks
+	if length(blocks) <=0
+		Error('Blockchain has no length!')
+	end
+	total = 0
+	for block in blocks
+		hash = block.hash
+		diff = block.difficulty
+		if hashMatchesDifficulty(hash, diff)
+			total += 2**diff
+		end
+	else
+		Error('not matching hash/difficulty found')
+		return -1
+	end
+	return total
+end
+
+function getDifficulty(blockchain:: AbstractBlockChain, difficulty_adjustment_interval, block_generation_interval)
+	latestBlock = getLatestBlock(blockchain)
+	if latestBlock.index % difficulty_adjustment_interval ==0 && latestBlock.index>=0
+		return getAdjustedDifficulty(latestBlock, blockchain,difficulty_adjustment_interval,block_generation_interval)
+	end
+	return latestBlock.difficulty
+end
+
+
+function getAdjustedDifficulty(latestBlock:: AbstractBlock, blockchain::AbstractBlockChain, difficulty_adjustment_interval, block_generation_interval)
+	const blockTimeAdjustmentFactor = 2
+	blocks = blockchain.blocks
+	prevAdjustmentBlock = blocks[length(blocks)-difficulty_adjustment_interval]
+	timeExpected = block_generation_interval* difficulty_adjustment_interval
+	if isValidTimestamp(latestBlock) && isValidTimestamp(prevAdjustmentBlock)
+		timeTaken = latestBlock.timestamp - prevAdjustmentBlock.timestamp
+		if timeTaken < timeExpected /blockTimeAdjustmentFactor
+			return prevAdjustmentBlock.difficulty +1
+		end
+		if timeTaken > timeExpected * blockTimeAdjustmentFactor
+			return prevAdjustmentBlock.difficulty -1
+		end
+		return prevAdjustmentBlock.difficulty
+	Error('One of the block timestamps is not valid')
+end
