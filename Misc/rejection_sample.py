@@ -128,3 +128,82 @@ def sample_upper(xs, hs, hdashes,zs):
 	i,diff = get_index_upper(cumsums, c)
 	sample = sample_single_piece(diff, hdashes[i],hs[i],xs[i])	
 
+
+# okay, now we can sample from that distribution what is the next step
+# we assume the abscissae are sorted into ascending value
+def get_nearest_abscissa_indices(value, abscissae):
+	for i in xrange(len(abscissae)):
+		if value > abscissae[i]:
+			return i-1, i
+	raise ValueError('Provided value greater than domain of this distribution')
+		
+def get_nearest_zs_index(value, zs):
+	for i in xrange(len(zs)):
+		if value > zs[i]:
+			return i-1,i
+	raise ValueError('Provided value greater than the domain of this distribution')
+
+
+def get_lower_hull(value, xs, hs):
+	i, iplus = get_nearest_abscissa_indices(value, xs)
+	return (((xs[iplus]-value)*hs[i]) +((value-xs[i])*hs[iplus]))/xs[iplus]-xs[i]
+
+def get_upper_hull_value(value, xs,zs):
+	i, iplus = get_nearest_zs_index(value, zs)
+	x = xs[]
+	hx= hs[i]
+	hdashx = hdashxs[i]
+	return hx + (value - x)*hdashx
+
+
+def add_new_point_to_hull(point):
+	pass 
+	
+	#this logic will be truly horrible. implement later
+
+def initialise_ars():
+	pass
+	#also do this logic later
+
+# now we should have all the helper functions we need to create the actual adapter rejection sampler
+def rejection_sample(fn,N):
+	samples = []
+	tries = []
+	n=0
+	num_acceptances = 0
+	num_rejections =0
+	while n < N:
+		xstar = sample_upper(xs, hs, hdashes, zs)
+		u = np.random.uniform(0,1)
+		w = xstar*u
+		#squeezing step!
+		if w <= np.exp(get_lower_hull(xstar,hs,zs)-get_upper_hull_value(xstar,xs,zs)):
+			#we accept
+			samples.append(xstar)
+			tries.append(1)
+			n+=1
+			num_acceptances +=1
+		else:
+			if w<=np.exp(fn(xstar)-get_upper_hull_value(xstar, xs,zs)):
+				samples.append(xstar)
+				tries.append(1)
+				add_new_point_to_hull(fn(xstar))
+				n+=1
+				num_acceptances +=1
+			else:
+				#we reject - dagnabbit!
+				tries.append(0)
+				num_rejections +=1
+
+	return samples, num_acceptances, num_rejections, tries
+	
+# so that's a very simple oeriew of the algorithm ,which is cool and nice and wonderful.
+# I mean it will never work, but we kind of understand it and get the complexity behind it which is cool. funnily enough it's the sampling from the upper which is the worst of the work
+# this is also kind of a huge overhead so it'sgot to be worth it over additoinal function evlauations, but perhaps it is?
+# I wonder if our GAN method can do better?
+	
+	
+
+
+
+
